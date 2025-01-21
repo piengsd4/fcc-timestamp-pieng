@@ -27,26 +27,21 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
-app.use("/api", (req, res) => {
-  console.log(req.path);
+app.use("/api/:date?", (req, res) => {
+  let date = req.params.date;
   // Check if date parameter is empty
-  if (req.path === "/") {
+  if (date === undefined) {
     res.json({"unix": Date.now(), "utc": new Date().toUTCString()});
   }
-  
-  // Convert date parameter to optimal format
-  let pathCheck = req.path.replace("/", "");
 
-  function isDateValid(dateStr) {
-    return !isNaN(new Date(dateStr));
-  }
+  let isValidDate = Date.parse(date); 
 
   // Case normal format + Case UNIX + Other case
-  if (isDateValid(pathCheck)) {
-    let date = new Date(pathCheck);
-    res.json({"unix": date.getTime(), "utc": date.toUTCString()});
-  } else if (moment.unix(Number(pathCheck)).isValid()) {
-    res.json({"unix": Number(pathCheck), "utc": new Date(Number(pathCheck)).toUTCString()});
+  if (isValidDate) {
+    let ndate = new Date(date);
+    res.json({"unix": ndate.getTime(), "utc": ndate.toUTCString()});
+  } else if (isNaN(isValidDate) && moment.unix(date).isValid()) {
+    res.json({"unix": Number(date), "utc": new Date(Number(date)).toUTCString()});
   } else {
     res.json({"error": "Invalid Date"});
   }
