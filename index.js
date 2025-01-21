@@ -1,3 +1,5 @@
+var moment = require('moment');
+
 // index.js
 // where your node app starts
 
@@ -21,7 +23,34 @@ app.get("/", function (req, res) {
 
 // your first API endpoint... 
 app.get("/api/hello", function (req, res) {
+  console.log(req.path);
   res.json({greeting: 'hello API'});
+});
+
+app.use("/api", (req, res) => {
+  console.log(req.path);
+  // Check if date parameter is empty
+  if (req.path === "/") {
+    res.json({"unix": Date.now(), "utc": new Date().toUTCString()});
+  }
+  
+  // Convert date parameter to optimal format
+  let pathCheck = req.path.replace("/", "");
+
+  function isDateValid(dateStr) {
+    return !isNaN(new Date(dateStr));
+  }
+
+  // Case normal format + Case UNIX + Other case
+  if (isDateValid(pathCheck)) {
+    let date = new Date(pathCheck);
+    res.json({"unix": date.getTime(), "utc": date.toUTCString()});
+  } else if (moment.unix(Number(pathCheck)).isValid()) {
+    res.json({"unix": Number(pathCheck), "utc": new Date(Number(pathCheck)).toUTCString()});
+  } else {
+    res.json({"error": "Invalid Date"});
+  }
+
 });
 
 
